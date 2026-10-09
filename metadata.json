@@ -1,0 +1,7 @@
+{
+  "name": "SAHAYA AI — Agentic Emotional Well-Being Companion",
+  "description": "A warm, private, agentic emotional well-being companion that listens, understands, and supports without judgment.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

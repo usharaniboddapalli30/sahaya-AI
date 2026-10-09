@@ -17,7 +17,9 @@ import {
   Smile, 
   Lock, 
   Globe2,
-  Cpu
+  Cpu,
+  Workflow,
+  ExternalLink
 } from 'lucide-react';
 import { FAQS } from '../data/constants';
 
@@ -25,12 +27,14 @@ interface LandingPageProps {
   onStartChat: () => void;
   onViewArchitecture: () => void;
   openCrisisModal: () => void;
+  openWorkflowModal?: () => void;
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({
   onStartChat,
   onViewArchitecture,
-  openCrisisModal
+  openCrisisModal,
+  openWorkflowModal
 }) => {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
 
@@ -48,10 +52,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           {/* Left Text Column */}
           <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
             
-            {/* Tagline Pill */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-amber-100/80 dark:bg-amber-950/50 text-amber-900 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800 shadow-2xs">
-              <Sparkles className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-              <span>You speak. SAHAYA listens, understands and supports.</span>
+            {/* Tagline & n8n Pill */}
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-amber-100/80 dark:bg-amber-950/50 text-amber-900 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800 shadow-2xs">
+                <Sparkles className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                <span>You speak. Animora listens, understands and supports.</span>
+              </div>
+
+              {openWorkflowModal && (
+                <button
+                  onClick={openWorkflowModal}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:scale-105 transition cursor-pointer shadow-2xs"
+                  title="View Animora n8n Workflow status"
+                >
+                  <Workflow className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>n8n Workflow Connected</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                </button>
+              )}
             </div>
 
             {/* Headline */}
@@ -61,7 +79,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
             {/* Subtitle */}
             <p className="text-base sm:text-lg text-stone-600 dark:text-stone-300 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-sans">
-              A warm, private, agentic emotional well-being companion created to give you a compassionate space when navigating loneliness, grief, separation, burnout, or life's quiet storms.
+              Animora is an agentic emotional companion powered by your automated n8n cloud workflow and advanced AI models. A warm, private space when navigating loneliness, grief, burnout, or life's quiet storms.
             </p>
 
             {/* CTAs */}

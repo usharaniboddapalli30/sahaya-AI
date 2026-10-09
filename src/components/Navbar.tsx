@@ -12,7 +12,8 @@ import {
   Menu, 
   X,
   User,
-  LogIn
+  LogIn,
+  Workflow
 } from 'lucide-react';
 import { LanguageCode } from '../types';
 import { SUPPORTED_LANGUAGES } from '../data/constants';
@@ -28,6 +29,7 @@ interface NavbarProps {
   openCrisisModal: () => void;
   openAuthModal: () => void;
   openProfileModal: () => void;
+  openWorkflowModal: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -39,7 +41,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   toggleDarkMode,
   openCrisisModal,
   openAuthModal,
-  openProfileModal
+  openProfileModal,
+  openWorkflowModal
 }) => {
   const { user, isAuthenticated } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -71,16 +74,16 @@ export const Navbar: React.FC<NavbarProps> = ({
           className="flex items-center gap-3 text-left group transition focus:outline-none"
         >
           <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 via-rose-300 to-purple-400 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform duration-300">
-            <span className="font-serif text-white font-bold text-lg select-none">S</span>
+            <span className="font-serif text-white font-bold text-lg select-none">A</span>
           </div>
           <div>
             <div className="flex items-center gap-2">
               <span className="font-serif font-bold text-xl tracking-tight text-stone-900 dark:text-stone-100">
-                SAHAYA <span className="text-amber-600 dark:text-amber-400 font-sans text-xs font-semibold px-1.5 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/60 uppercase">AI</span>
+                Animora <span className="text-amber-600 dark:text-amber-400 font-sans text-xs font-semibold px-1.5 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/60 uppercase">SAHAYA AI</span>
               </span>
             </div>
             <p className="text-[11px] text-stone-500 dark:text-stone-400 hidden sm:block -mt-0.5">
-              Listens, understands and supports
+              Powered by n8n Cloud Workflow • Listens & supports
             </p>
           </div>
         </button>
@@ -110,6 +113,18 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Right Action Bar */}
         <div className="flex items-center gap-2 sm:gap-3">
           
+          {/* n8n Workflow Hub Trigger Button */}
+          <button
+            onClick={openWorkflowModal}
+            className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/50 text-amber-900 dark:text-amber-200 border border-amber-300/80 dark:border-amber-800 text-xs font-semibold shadow-2xs transition cursor-pointer"
+            title="Animora n8n Workflow status and setup"
+          >
+            <Workflow className="w-3.5 h-3.5 text-amber-600" />
+            <span className="hidden lg:inline">n8n:</span>
+            <span>gXsxXGLg</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          </button>
+
           {/* User Auth / Profile Button */}
           {isAuthenticated && user ? (
             <button
@@ -233,6 +248,21 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span>{isDarkMode ? 'Eye Comfort (On)' : 'Eye Comfort (Off)'}</span>
             </span>
             <span className="text-[10px] text-stone-400 font-normal">{isDarkMode ? 'Switch to Day' : 'Switch to Night'}</span>
+          </button>
+
+          {/* n8n Workflow button on mobile */}
+          <button
+            onClick={() => {
+              setIsMobileMenuOpen(false);
+              openWorkflowModal();
+            }}
+            className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-xs font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-800 mb-2"
+          >
+            <span className="flex items-center gap-2">
+              <Workflow className="w-4 h-4 text-amber-600" />
+              <span>Animora n8n Workflow</span>
+            </span>
+            <span className="text-[10px] text-emerald-600 font-mono">Connected</span>
           </button>
           {isAuthenticated && user && (
             <div className="p-3 mb-2 rounded-2xl bg-amber-50 dark:bg-stone-800 flex items-center justify-between">

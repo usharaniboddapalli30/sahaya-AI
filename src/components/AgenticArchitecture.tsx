@@ -10,15 +10,30 @@ import {
   CheckCircle2, 
   AlertTriangle,
   Layers,
-  Compass
+  Compass,
+  Workflow,
+  ExternalLink
 } from 'lucide-react';
 
 interface AgenticArchitectureProps {
   onStartChat: () => void;
+  openWorkflowModal?: () => void;
 }
 
-export const AgenticArchitecture: React.FC<AgenticArchitectureProps> = ({ onStartChat }) => {
+export const AgenticArchitecture: React.FC<AgenticArchitectureProps> = ({ 
+  onStartChat,
+  openWorkflowModal 
+}) => {
   const agents = [
+    {
+      name: 'Animora n8n Workflow Engine',
+      role: 'Cloud Automation & Webhook Orchestrator',
+      icon: Workflow,
+      color: 'from-amber-600 to-rose-600',
+      badge: 'Live n8n Cloud',
+      description: 'Dispatches user queries, conversation state, and emotional context to your hosted n8n Cloud Workflow (gXsxXGLg091zlwSe on animora.app.n8n.cloud) with automatic Gemini fallback.',
+      keyPrinciple: 'Empowers visual workflow editing, custom tool calling, and automated response pipelines in n8n.'
+    },
     {
       name: 'Orchestrator Agent',
       role: 'Master Conductor & Router',
@@ -51,7 +66,7 @@ export const AgenticArchitecture: React.FC<AgenticArchitectureProps> = ({ onStar
       role: 'Empathetic Core Dialogue',
       icon: HeartHandshake,
       color: 'from-emerald-500 to-emerald-600',
-      badge: 'Voice of SAHAYA',
+      badge: 'Voice of Animora',
       description: 'Generates the primary warm, respectful, and comforting dialogue in the user’s preferred tongue. Uses conversational validation and pacing without toxic positivity.',
       keyPrinciple: 'Zero judgment. Acknowledges feelings with gentle reverence and presence.'
     },
@@ -211,13 +226,25 @@ export const AgenticArchitecture: React.FC<AgenticArchitectureProps> = ({ onStar
         <p className="text-stone-600 dark:text-stone-300 text-sm max-w-xl mx-auto mb-6">
           Every response from SAHAYA includes an inspectable Agent Mind toggle. You can view exactly which agents were active, the detected emotional resonance, and safety status.
         </p>
-        <button
-          onClick={onStartChat}
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-semibold text-sm shadow-md transition cursor-pointer"
-        >
-          Talk to SAHAYA Now
-          <ArrowRight className="w-4 h-4" />
-        </button>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <button
+            onClick={onStartChat}
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-semibold text-sm shadow-md transition cursor-pointer"
+          >
+            Talk to Animora Now
+            <ArrowRight className="w-4 h-4" />
+          </button>
+
+          {openWorkflowModal && (
+            <button
+              onClick={openWorkflowModal}
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-white dark:bg-stone-800 hover:bg-stone-100 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 border border-stone-200 dark:border-stone-700 font-semibold text-sm shadow-xs transition cursor-pointer"
+            >
+              <Workflow className="w-4 h-4 text-amber-600" />
+              Configure n8n Workflow
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

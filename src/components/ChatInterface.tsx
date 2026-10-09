@@ -20,7 +20,8 @@ import {
   Heart,
   Info,
   Layers,
-  Cpu
+  Cpu,
+  Workflow
 } from 'lucide-react';
 import { ChatMessage, LanguageCode, AgentOrchestrationInfo } from '../types';
 import { QUICK_START_PROMPTS, SUPPORTED_LANGUAGES } from '../data/constants';
@@ -30,12 +31,18 @@ interface ChatInterfaceProps {
   language: LanguageCode;
   setLanguage: (lang: LanguageCode) => void;
   openCrisisModal: () => void;
+  openWorkflowModal?: () => void;
+  n8nWebhookUrl?: string;
+  useN8n?: boolean;
 }
 
 export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   language,
   setLanguage,
-  openCrisisModal
+  openCrisisModal,
+  openWorkflowModal,
+  n8nWebhookUrl,
+  useN8n = true
 }) => {
   const { user } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
@@ -48,7 +55,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
       {
         id: 'welcome-1',
         role: 'assistant',
-        content: `Welcome to SAHAYA AI. I am here to listen with an open, non-judgmental heart. 
+        content: `Welcome to Animora (SAHAYA AI). I am here to listen with an open, non-judgmental heart. 
 
 Whether you are carrying loneliness, grief, heavy stress, past heartache, or simply need a quiet space to put your thoughts into words—take your time. You don't have to carry it all by yourself today.
 
@@ -57,8 +64,8 @@ What is on your mind right now?`,
         orchestration: {
           safetyCheck: { status: 'safe', note: 'Session initiated safely.' },
           detectedEmotion: { emotion: 'Open Presence', nuance: 'Welcoming space established for gentle sharing.' },
-          activeAgents: ['Orchestrator Agent', 'Companion Agent', 'Safety Agent'],
-          reasoning: 'Session initialized. Prepared to support in preferred language with deep respect.'
+          activeAgents: ['Animora n8n Workflow', 'Orchestrator Agent', 'Companion Agent', 'Safety Agent'],
+          reasoning: 'Session initialized. Connected to Animora n8n Workflow (gXsxXGLg091zlwSe) with Gemini fallback.'
         }
       }
     ];
@@ -176,7 +183,9 @@ What is on your mind right now?`,
         body: JSON.stringify({
           messages: newHistory.map(m => ({ role: m.role, content: m.content })),
           language,
-          requestedAgent: agentMode === 'auto' ? undefined : agentMode
+          requestedAgent: agentMode === 'auto' ? undefined : agentMode,
+          n8nWebhookUrl,
+          useN8n
         })
       });
 
@@ -240,6 +249,18 @@ Take one gentle breath. If you are going through an intense moment, remember tha
         
         {/* Active Agents Pills */}
         <div className="flex items-center gap-2 overflow-x-auto py-0.5">
+          {openWorkflowModal && (
+            <button
+              onClick={openWorkflowModal}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-100/70 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 text-xs font-semibold border border-amber-300/80 dark:border-amber-700/80 hover:scale-105 transition cursor-pointer shrink-0"
+              title="Click to view connected Animora n8n Workflow"
+            >
+              <Workflow className="w-3.5 h-3.5 text-amber-600" />
+              <span>n8n: gXsxXGLg</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            </button>
+          )}
+
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 text-xs font-semibold border border-amber-200/60 dark:border-amber-800/60 shrink-0">
             <Cpu className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
             <span>Orchestrator Active</span>

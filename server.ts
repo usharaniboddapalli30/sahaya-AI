@@ -206,10 +206,80 @@ const CALMING_MUSIC_CATALOG = [
   }
 ];
 
+// n8n Cloud Workflow Configuration (Animora)
+const N8N_WORKFLOW_CONFIG = {
+  workflowUrl: 'https://animora.app.n8n.cloud/workflow/gXsxXGLg091zlwSe?projectId=qZKZcYa1ZwPZVkE6',
+  workflowId: 'gXsxXGLg091zlwSe',
+  projectId: 'qZKZcYa1ZwPZVkE6',
+  instanceDomain: 'animora.app.n8n.cloud',
+  defaultWebhookUrl: process.env.N8N_WEBHOOK_URL || 'https://animora.app.n8n.cloud/webhook/gXsxXGLg091zlwSe',
+};
+
+async function callN8nWorkflow(webhookUrl: string, payload: any): Promise<{ reply?: string; data?: any; success: boolean; error?: string }> {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 6000);
+
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      return { success: false, error: `n8n webhook returned status ${response.status} (${response.statusText})` };
+    }
+
+    const json: any = await response.json().catch(() => null);
+    if (!json) {
+      const text = await response.text().catch(() => '');
+      return { success: true, reply: text };
+    }
+
+    let reply = '';
+    if (typeof json === 'string') {
+      reply = json;
+    } else if (json.reply) {
+      reply = json.reply;
+    } else if (json.output) {
+      reply = json.output;
+    } else if (json.text) {
+      reply = json.text;
+    } else if (json.message) {
+      reply = json.message;
+    } else if (Array.isArray(json) && json[0]) {
+      reply = json[0].output || json[0].reply || json[0].text || json[0].message || '';
+    }
+
+    if (!reply && typeof json === 'object') {
+      // Pick first string property if available
+      for (const key of Object.keys(json)) {
+        if (typeof json[key] === 'string' && json[key].length > 5) {
+          reply = json[key];
+          break;
+        }
+      }
+    }
+
+    return { success: true, reply: reply || 'Message received by Animora n8n Workflow.', data: json };
+  } catch (err: any) {
+    return { success: false, error: err.name === 'AbortError' ? 'n8n webhook timed out after 6s' : err.message };
+  }
+}
+
 // POST /api/chat
 app.post('/api/chat', async (req: Request, res: Response) => {
   try {
-    const { messages = [], language = 'en', requestedAgent, emotionTag } = req.body;
+    const { 
+      messages = [], 
+      language = 'en', 
+      requestedAgent, 
+      emotionTag,
+      n8nWebhookUrl,
+      useN8n = true 
+    } = req.body;
 
     if (!Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({ error: 'Messages array is required' });
@@ -310,13 +380,37 @@ If you are in immediate danger of hurting yourself, please call your local emerg
       });
     }
 
-    // AGENT 4: COMPANION AGENT RESPONSE GENERATION
+    // AGENT 4: COMPANION & N8N AGENT RESPONSE GENERATION
     let reply = '';
+    let engineSource = 'Gemini 3.8 Flash Engine';
 
-    if (aiClient) {
+    // Attempt n8n Cloud Workflow execution first if enabled
+    const targetWebhook = n8nWebhookUrl || N8N_WORKFLOW_CONFIG.defaultWebhookUrl;
+    if (useN8n && targetWebhook) {
+      activeAgents.push('Animora n8n Workflow Agent');
+      const n8nResult = await callN8nWorkflow(targetWebhook, {
+        message: userText,
+        messages: messages.slice(-8),
+        language,
+        workflowId: N8N_WORKFLOW_CONFIG.workflowId,
+        projectId: N8N_WORKFLOW_CONFIG.projectId,
+        emotion: emotionEstimate,
+        safetyStatus: safetyResult.status,
+        timestamp: new Date().toISOString()
+      });
+
+      if (n8nResult.success && n8nResult.reply) {
+        reply = n8nResult.reply;
+        engineSource = 'Animora n8n Cloud Workflow (gXsxXGLg091zlwSe)';
+      }
+    }
+
+    // If n8n did not produce a reply, generate with Gemini
+    if (!reply && aiClient) {
       try {
-        const systemPrompt = `You are SAHAYA AI — an agentic emotional well-being companion.
-Tagline: "You speak. SAHAYA listens, understands and supports."
+        const systemPrompt = `You are SAHAYA AI by Animora — an agentic emotional well-being companion.
+Tagline: "You speak. Animora listens, understands and supports."
+Connected Workflow: Animora n8n Engine (Workflow: gXsxXGLg091zlwSe).
 
 SAHAYA'S CORE IDENTITY & ETHICAL CODE:
 1. WARM, RESPECTFUL, EMPATHETIC & NON-JUDGMENTAL: You provide a safe, private feeling where people dealing with loneliness, grief, separation, painful past experiences, stress, or heavy life moments can share freely.
@@ -333,13 +427,7 @@ CONVERSATION GUIDELINES:
 - Respond in the language: ${language} (if the user typed in Hindi, respond in warm empathetic Hindi or Hinglish; if English, respond in natural English; if other, match the user).
 - Validate the emotion first. Acknowledge what was said with sincerity.
 - Keep responses comfortable in length (2 to 4 paragraphs), inviting thoughtful pacing.
-- Offer a gentle open-ended question or an invitation to explore a grounding exercise, breath, or reflect deeper when appropriate.`;
-
-        // Format conversation history for Gemini
-        const contents = messages.slice(-8).map((m: any) => ({
-          role: m.role === 'assistant' ? 'model' : 'user',
-          parts: [{ text: m.content }]
-        }));
+- Offer a gentle open-ended question or an invitation to explore a grounding moment, breath, or reflect deeper when appropriate.`;
 
         const response = await aiClient.models.generateContent({
           model: 'gemini-3.8-flash',
@@ -352,6 +440,7 @@ CONVERSATION GUIDELINES:
         });
 
         reply = response.text || '';
+        engineSource = 'Gemini 3.8 Flash AI Model';
       } catch (geminiError: any) {
         console.error('Gemini API execution error, switching to graceful fallback:', geminiError?.message || geminiError);
       }
@@ -360,6 +449,7 @@ CONVERSATION GUIDELINES:
     // Graceful fallback if Gemini is not configured or throws
     if (!reply) {
       reply = generateEmpatheticFallback(userText, emotionEstimate, language, storyAttachment, musicAttachment);
+      engineSource = 'Local High-Fidelity Empathetic Engine';
     }
 
     return res.json({
@@ -369,15 +459,58 @@ CONVERSATION GUIDELINES:
         detectedEmotion: emotionEstimate,
         activeAgents,
         recommendation: recommendedAction,
-        reasoning: `Orchestrator routed the message through the Safety Agent (${safetyResult.status}), estimated emotional context as '${emotionEstimate.emotion}', and engaged the Companion Agent with tone validation in ${language}.`
+        reasoning: `Orchestrator routed the message through the Safety Agent (${safetyResult.status}), estimated emotional context as '${emotionEstimate.emotion}', and delivered response via ${engineSource}. Connected n8n Workflow: ${N8N_WORKFLOW_CONFIG.workflowId}.`,
+        engineSource,
+        workflowConfig: N8N_WORKFLOW_CONFIG
       }
     });
 
   } catch (error: any) {
     console.error('Error in /api/chat:', error);
     return res.status(500).json({
-      error: 'An unexpected issue occurred. SAHAYA is still here with you.',
+      error: 'An unexpected issue occurred. Animora is still here with you.',
       details: error.message
+    });
+  }
+});
+
+// GET /api/n8n/config
+app.get('/api/n8n/config', (_req: Request, res: Response) => {
+  res.json(N8N_WORKFLOW_CONFIG);
+});
+
+// POST /api/n8n/ping
+app.post('/api/n8n/ping', async (req: Request, res: Response) => {
+  const { url = N8N_WORKFLOW_CONFIG.defaultWebhookUrl } = req.body;
+  const startTime = Date.now();
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const testRes = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ping: true, timestamp: new Date().toISOString() }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    const latencyMs = Date.now() - startTime;
+    return res.json({
+      success: testRes.ok,
+      status: testRes.status,
+      statusText: testRes.statusText,
+      latencyMs,
+      endpoint: url,
+      message: testRes.ok ? 'n8n Webhook is active and responding!' : `n8n endpoint reached (HTTP ${testRes.status})`
+    });
+  } catch (err: any) {
+    const latencyMs = Date.now() - startTime;
+    return res.json({
+      success: false,
+      status: 0,
+      latencyMs,
+      endpoint: url,
+      error: err.name === 'AbortError' ? 'Ping timed out after 5s' : err.message,
+      message: 'n8n workflow is ready in cloud; ensure Webhook node is active.'
     });
   }
 });

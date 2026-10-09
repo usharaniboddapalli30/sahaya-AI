@@ -12,9 +12,10 @@ import { CrisisModal } from './components/CrisisModal';
 import { AuthModal } from './components/AuthModal';
 import { UserProfileModal } from './components/UserProfileModal';
 import { PinLockScreen } from './components/PinLockScreen';
+import { WorkflowHubModal } from './components/WorkflowHubModal';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LanguageCode } from './types';
-import { ShieldAlert, LogIn } from 'lucide-react';
+import { ShieldAlert, LogIn, Workflow } from 'lucide-react';
 
 function AppContent() {
   const { user, isAuthenticated, isPinLocked } = useAuth();
@@ -25,6 +26,39 @@ function AppContent() {
   const [isCrisisModalOpen, setIsCrisisModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isWorkflowModalOpen, setIsWorkflowModalOpen] = useState(false);
+
+  // n8n Workflow State
+  const [n8nWebhookUrl, setN8nWebhookUrl] = useState<string>(() => {
+    try {
+      return localStorage.getItem('animora_n8n_webhook') || 'https://animora.app.n8n.cloud/webhook/gXsxXGLg091zlwSe';
+    } catch {
+      return 'https://animora.app.n8n.cloud/webhook/gXsxXGLg091zlwSe';
+    }
+  });
+
+  const [useN8n, setUseN8n] = useState<boolean>(() => {
+    try {
+      const stored = localStorage.getItem('animora_use_n8n');
+      return stored !== null ? stored === 'true' : true;
+    } catch {
+      return true;
+    }
+  });
+
+  const handleUpdateWebhookUrl = (url: string) => {
+    setN8nWebhookUrl(url);
+    try {
+      localStorage.setItem('animora_n8n_webhook', url);
+    } catch {}
+  };
+
+  const handleToggleUseN8n = (enabled: boolean) => {
+    setUseN8n(enabled);
+    try {
+      localStorage.setItem('animora_use_n8n', String(enabled));
+    } catch {}
+  };
   
   // Dark mode state
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
@@ -80,6 +114,7 @@ function AppContent() {
         openCrisisModal={() => setIsCrisisModalOpen(true)}
         openAuthModal={() => setIsAuthModalOpen(true)}
         openProfileModal={() => setIsProfileModalOpen(true)}
+        openWorkflowModal={() => setIsWorkflowModalOpen(true)}
       />
 
       {/* Main App Content View */}
@@ -89,6 +124,7 @@ function AppContent() {
             onStartChat={handleStartChat}
             onViewArchitecture={handleViewArchitecture}
             openCrisisModal={() => setIsCrisisModalOpen(true)}
+            openWorkflowModal={() => setIsWorkflowModalOpen(true)}
           />
         )}
 
@@ -97,15 +133,29 @@ function AppContent() {
             language={language}
             setLanguage={setLanguage}
             openCrisisModal={() => setIsCrisisModalOpen(true)}
+            openWorkflowModal={() => setIsWorkflowModalOpen(true)}
+            n8nWebhookUrl={n8nWebhookUrl}
+            useN8n={useN8n}
           />
         )}
 
         {activeTab === 'agentic' && (
           <AgenticArchitecture
             onStartChat={handleStartChat}
+            openWorkflowModal={() => setIsWorkflowModalOpen(true)}
           />
         )}
       </main>
+
+      {/* n8n Workflow Hub Modal */}
+      <WorkflowHubModal
+        isOpen={isWorkflowModalOpen}
+        onClose={() => setIsWorkflowModalOpen(false)}
+        webhookUrl={n8nWebhookUrl}
+        setWebhookUrl={handleUpdateWebhookUrl}
+        useN8n={useN8n}
+        setUseN8n={handleToggleUseN8n}
+      />
 
       {/* Auth Modal (Sign In, Register, Guest Pass) */}
       <AuthModal
@@ -129,9 +179,19 @@ function AppContent() {
       {/* PIN Security Screen if Locked */}
       {isPinLocked && <PinLockScreen />}
 
-      {/* Floating Immediate Help SOS pill in bottom corner (when not in full chat to avoid overlap) */}
+      {/* Floating Action Bar in bottom corner (when not in full chat to avoid overlap) */}
       {activeTab !== 'chat' && (
-        <aside aria-label="Crisis Support" className="fixed bottom-5 right-5 z-30 flex items-center gap-2">
+        <aside aria-label="Quick Actions" className="fixed bottom-5 right-5 z-30 flex items-center gap-2">
+          {/* Quick n8n Status Pill */}
+          <button
+            onClick={() => setIsWorkflowModalOpen(true)}
+            className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-700/60 shadow-md backdrop-blur-sm text-xs font-semibold transition cursor-pointer"
+            title="Animora n8n Workflow Status"
+          >
+            <Workflow className="w-3.5 h-3.5 text-amber-600" />
+            <span className="hidden sm:inline">n8n Connected</span>
+          </button>
+
           {!isAuthenticated && (
             <button
               onClick={() => setIsAuthModalOpen(true)}

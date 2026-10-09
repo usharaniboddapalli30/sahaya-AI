@@ -19,7 +19,7 @@ export const PinLockScreen: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#FAF8F5]/95 dark:bg-stone-900/95 backdrop-blur-md animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#FAF7F2]/95 dark:bg-[#12161F]/95 backdrop-blur-md animate-fade-in">
       <div className="w-full max-w-sm bg-white dark:bg-stone-850 rounded-3xl p-8 border border-stone-200 dark:border-stone-800 shadow-2xl text-center">
         <div className="w-16 h-16 rounded-3xl bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 mx-auto flex items-center justify-center text-2xl mb-4 shadow-sm">
           <Lock className="w-8 h-8" />

@@ -62,7 +62,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-[#FAF8F5]/90 dark:bg-stone-900/90 border-b border-stone-200/80 dark:border-stone-800 transition-colors">
+    <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-[#FAF7F2]/90 dark:bg-[#12161F]/90 border-b border-stone-200/80 dark:border-stone-800 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
         
         {/* Logo and Brand */}
@@ -134,6 +134,30 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           )}
 
+          {/* Eye Comfort / Dark Theme Toggle */}
+          <button
+            onClick={toggleDarkMode}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition cursor-pointer shadow-xs ${
+              isDarkMode
+                ? 'bg-amber-950/40 text-amber-300 border-amber-800 hover:bg-amber-900/40'
+                : 'bg-stone-100 text-stone-700 border-stone-200 hover:bg-stone-200'
+            }`}
+            aria-label="Toggle Eye Comfort Night Mode"
+            title={isDarkMode ? "Eye Comfort Active (Click for Day Mode)" : "Switch to Eye Comfort Night Mode"}
+          >
+            {isDarkMode ? (
+              <>
+                <Sun className="w-4 h-4 text-amber-400" />
+                <span className="hidden sm:inline">Eye Comfort On</span>
+              </>
+            ) : (
+              <>
+                <Moon className="w-4 h-4 text-purple-600" />
+                <span className="hidden sm:inline">Eye Comfort</span>
+              </>
+            )}
+          </button>
+
           {/* Language Selector */}
           <div className="relative">
             <button
@@ -174,15 +198,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}
           </div>
 
-          {/* Theme Toggle */}
-          <button
-            onClick={toggleDarkMode}
-            className="p-2.5 rounded-xl text-stone-600 dark:text-stone-300 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 transition"
-            aria-label="Toggle dark mode"
-          >
-            {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-stone-600" />}
-          </button>
-
           {/* Crisis SOS Help Button */}
           <button
             onClick={openCrisisModal}
@@ -207,7 +222,18 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Mobile Drawer */}
       {isMobileMenuOpen && (
-        <div className="md:hidden border-t border-stone-200 dark:border-stone-800 bg-[#FAF8F5] dark:bg-stone-900 px-4 pt-3 pb-6 space-y-1">
+        <div className="md:hidden border-t border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-[#12161F] px-4 pt-3 pb-6 space-y-2">
+          {/* Eye Comfort toggle on mobile */}
+          <button
+            onClick={toggleDarkMode}
+            className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-xs font-semibold bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-200 border border-stone-200 dark:border-stone-700 mb-2"
+          >
+            <span className="flex items-center gap-2">
+              {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-purple-600" />}
+              <span>{isDarkMode ? 'Eye Comfort (On)' : 'Eye Comfort (Off)'}</span>
+            </span>
+            <span className="text-[10px] text-stone-400 font-normal">{isDarkMode ? 'Switch to Day' : 'Switch to Night'}</span>
+          </button>
           {isAuthenticated && user && (
             <div className="p-3 mb-2 rounded-2xl bg-amber-50 dark:bg-stone-800 flex items-center justify-between">
               <div className="flex items-center gap-2">

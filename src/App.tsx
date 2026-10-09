@@ -40,9 +40,13 @@ function AppContent() {
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
+      document.body.classList.add('dark');
+      document.documentElement.setAttribute('data-theme', 'dark');
       localStorage.setItem('sahaya_theme', 'dark');
     } else {
       document.documentElement.classList.remove('dark');
+      document.body.classList.remove('dark');
+      document.documentElement.setAttribute('data-theme', 'light');
       localStorage.setItem('sahaya_theme', 'light');
     }
   }, [isDarkMode]);
@@ -60,7 +64,7 @@ function AppContent() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAF8F5] dark:bg-stone-900 text-stone-800 dark:text-stone-100 font-sans transition-colors duration-200">
+    <div className="min-h-screen flex flex-col bg-[#FAF7F2] dark:bg-[#12161F] text-stone-800 dark:text-stone-100 font-sans transition-colors duration-300">
       
       {/* Top Navigation */}
       <Navbar
